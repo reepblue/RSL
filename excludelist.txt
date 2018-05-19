@@ -24,4 +24,4 @@ ipch
 .app
 .log
 RSLTest
-.DS_store
+.DS_Store
