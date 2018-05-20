@@ -49,6 +49,7 @@ SOFTWARE.
 #include <list>
 #include <vector>
 #include <chrono>
+#include <ctime>
 #else // C varient Headers:
 #include <limits.h>
 #include <string.h>
@@ -64,6 +65,11 @@ SOFTWARE.
 
 // platform.h
 #include "Platform.h"
+
+// Windows Exclusive
+#if defined(SYSTEM_WINDOWS)
+#include <Windows.h>
+#endif
 
 // Max size of char-strings.
 #ifndef MAX_SIZE_STRING
@@ -96,8 +102,9 @@ namespace RSL
 	char* GetCurrentDateTime();
 	char* GetCurrentDateTimeStamp();
     char* GetCurrentDate();
-    char* GetCurrentTime();
+    char* _GetCurrentTime();
 
+#if defined (RSL_EXPERIMENTAL)
 	struct Epoch
 	{
 #if !defined(SYSTEM_WINDOWS)
@@ -109,7 +116,6 @@ namespace RSL
 		__time32_t esec;
 	#endif // ARCH
 #endif
-
 		int16_t year;
         unsigned int month;
         unsigned int day;
@@ -129,6 +135,7 @@ namespace RSL
         void ModYear(const int y = 1);
 		char* Print();
 	};
+#endif // RSL_EXPERIMENTAL
 
     // ===========
     // Logging
@@ -165,7 +172,7 @@ namespace RSL
 	// ===========
     // Input
     // ===========
-	std::string WaitForInput(const char* rInquiry = nullptr, bool bRecord = true);
+	std::string WaitForInput(const std::string& rInquiry = "", bool bRecord = true);
 
 	// ===========
     // Debugging
@@ -185,6 +192,53 @@ namespace RSL
 		void InitEvent(Event* pEvent);
 		void EndEvent(Event* pEvent);
 	}
+
+	// ===========
+	// FileSystem
+	// ===========
+	namespace FileSystem
+	{
+		bool Exists(const char* pPath); // Works both on files and directories
+		bool IsDir(const char* pPath);
+		bool IsDir_s(const std::string& pPath);
+
+		bool SetDir(const char* pPath);
+		bool SetDir_s(const std::string& pPath);
+		const char* GetDir();
+		std::string GetDir_s();
+
+		std::string GetAppDataPath(); // Returns the AppData env var in windows, and the home root in *nix.
+		std::string GetDocumentsPath();
+		std::string GetPath(const std::string& rPath);
+		std::string GetExtension(const std::string& rPath);
+		std::string GetFolderName(const std::string& rPath);
+
+		std::string StripBoth(const std::string& rPath);
+		std::string StripPath(const std::string& rPath);
+		std::string StripExtension(const std::string& rPath);
+
+		const int RemoveFile(const char* pPath);
+		const int RemoveFile_s(const std::string& pPath);
+		//std::list<std::string> GetContentsInDir(); TODO: Get a list of every file in a dir. This will be needed to delete a directory with content in it.
+
+		bool _CreateDirectory(const std::string& rName);
+	}
+
+	// ===========
+	// String
+	// ===========
+	namespace String
+	{
+		bool Boolean(const std::string& pString);
+		int Int(const std::string& pString);
+		float Float(const std::string& pString);
+		const char* Char(const std::string& pString);
+		bool IsDigits(const std::string& pString, bool pLeadingDigits);
+		bool Contains(const std::string& pString, const std::string& pSubstring);
+	}
 }
+
+#define RS_CreateDir(x) RSL::FileSystem::_CreateDirectory(x)
+#define RS_GetCurrentTime() RSL::_GetCurrentTime()
 
 #endif // RSL_H_INCLUDED

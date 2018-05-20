@@ -43,6 +43,23 @@ int main()
 	RSL::Debug::EndEvent(&e);
 #endif
 
+
+	// Test filesystem stuff.
+	RSL::Print(RSL::FileSystem::GetDir());
+	RSL::Print(RSL::FileSystem::GetAppDataPath());
+	RSL::Print(RSL::FileSystem::GetDocumentsPath());
+
+	bool b = RS_CreateDir("Sam");
+
+	if (b)
+	{
+		RSL::Print("Yay!");
+	}
+	else
+	{
+		RSL::Print("Folder wasn't made. Maybe it already exists?");
+	}
+		
 	// Write out the vector to the log file.
 	RSL::WriteOut();
 

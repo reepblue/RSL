@@ -9,7 +9,7 @@ in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
-
+s
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 
@@ -23,6 +23,28 @@ SOFTWARE.
 */
 
 #include "RSL.h"
+
+// Includes for Filesystem
+#if defined(SYSTEM_WINDOWS)
+#include <ShlObj.h>
+#include <direct.h>
+#undef CopyFile
+#undef CreateFile
+#undef DeleteFile
+#else
+#include <dirent.h>
+#include <unistd.h>
+#include <errno.h>
+#include <pwd.h>
+#include <fcntl.h>
+#include <unistd.h>
+#endif
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+#include <errno.h>
+
 
 namespace RSL
 {
@@ -49,7 +71,7 @@ namespace RSL
 		return output;
 	}
 
-	char* GetCurrentTimeStamp()
+	char* GetCurrentDateTimeStamp()
 	{
 #if defined (ARCH_AMD64) || defined (ARCH_ARM64)
 		__time64_t rawtime;
@@ -88,7 +110,7 @@ namespace RSL
 		return output;
 	}
 
-	char* GetCurrentTime()
+	char* _GetCurrentTime()
 	{
 #if defined (ARCH_AMD64) || defined (ARCH_ARM64)
 		__time64_t rawtime;
@@ -144,7 +166,7 @@ namespace RSL
 		return output;
 	}
 
-	char* GetCurrentTime()
+	char* _GetCurrentTime()
 	{
 		time_t rawtime = time(NULL);
 		struct tm timeinfo;
@@ -244,7 +266,7 @@ namespace RSL
     {
         static char output[MAX_SIZE_STRING];
         //sprintf(output, "%02d-%02d-%02d %02d:%02d:%02d.%02d",
-        sprintf(output, "%02d-%02d-%02d %02d:%02d:%02d",
+        RS_sprintf(output, "%02d-%02d-%02d %02d:%02d:%02d",
                 year, month, day, hour, min, sec);
         return output;
     }
@@ -398,7 +420,7 @@ namespace RSL
 	// ========================= //
    	// ========= Input  ======== //
 	// ========================= //
-	std::string WaitForInput(const char* rInquiry, bool bRecord)
+	std::string WaitForInput(const std::string& rInquiry, bool bRecord)
 	{
 		if (bRecord) 
 			Record("Program paused waiting for user input...");
@@ -411,7 +433,7 @@ namespace RSL
 			// The rInqury member is used for such things as "Enter your name",
 			// or "How old are you?". If you just want raw input, keep this member
 			// nullptr.
-			if (rInquiry != nullptr)
+			if (rInquiry != "")
 			{
 				std::cout << rInquiry << "\n > "; std::getline(std::cin, in);
 			}
@@ -433,12 +455,14 @@ namespace RSL
 	// ========================= //
    	// ======= Debugging  ====== //
 	// ========================= //
-#if defined (RSL_EXPERIMENTAL)
 	namespace Debug
 	{
 		Event::Event(const char* pName)
 		{
-			name = pName;
+			if (IsDebug())
+			{
+				name = pName;
+			}
 		}
 
 		void InitEvent(Event* pEvent)
@@ -467,8 +491,348 @@ namespace RSL
 			}
 		}
 	}
-#endif // RSL_EXPERIMENTAL
 	// ======== END OF ========= //
    	// ======= Debugging  ====== //
+	// ======== END OF ========= //
+
+	// ========================= //
+	// ======= FileSystem ====== //
+	// ========================= //
+#define _StripExt(path)                                 \
+    auto _rf = path.rfind(".");                         \
+    if (_rf != std::string::npos) path.erase(_rf, path.size());
+
+	namespace FileSystem
+	{
+		static void _StripPath(std::string& path)
+		{
+			size_t pos = path.size();
+			for (; pos > 0; --pos) {
+				if (path[pos] == '/' || path[pos] == '\\') {
+					++pos;
+					break;
+				}
+			}
+			if (pos == 0) return;
+			path.erase(path.begin(), path.begin() + pos);
+		}
+
+		bool Exists(const char* pPath)
+		{
+			struct stat buffer;
+			return stat(pPath, &buffer) == 0;
+		}
+
+		bool Exists_s(const std::string& pPath)
+		{
+			struct stat buffer;
+			return stat(pPath.c_str(), &buffer) == 0;
+		}
+
+		bool IsDir(const char* pPath)
+		{
+			struct stat buffer;
+			if (stat(pPath, &buffer) != 0) return false;
+
+			return buffer.st_mode & S_IFDIR;
+		}
+
+		bool IsDir_s(const std::string& pPath)
+		{
+			struct stat buffer;
+			if (stat(pPath.c_str(), &buffer) != 0) return false;
+
+			return buffer.st_mode & S_IFDIR;
+		}
+
+		bool SetDir(const char* pPath)
+		{
+			if (!Exists(pPath))
+			{
+				return false;
+			}
+
+#if defined (SYSTEM_WINDOWS)
+			_chdir(pPath);
+#else
+			chdir(pPath);
+#endif
+			return true;
+		}
+
+		bool SetDir_s(const std::string& pPath)
+		{
+			if (!Exists(pPath.c_str()))
+			{
+				return false;
+			}
+
+#if defined (SYSTEM_WINDOWS)
+			_chdir(pPath.c_str());
+			
+#else
+		chdir(pPath.c_str());
+#endif
+
+			return true;
+		}
+
+		const char* GetDir() 
+		{
+#if defined (SYSTEM_WINDOWS)
+			return _getcwd(0, 0);
+#else
+			return getcwd(0, 0);
+#endif
+		}
+
+		std::string GetDir_s()
+		{
+#if defined (SYSTEM_WINDOWS)
+			char* cwd = _getcwd(0, 0);
+#else
+			char* cwd = getcwd(0, 0);
+#endif
+			std::string working_directory(cwd);
+			std::free(cwd);
+			return working_directory;
+		}
+
+		std::string GetAppDataPath()
+		{
+#if defined (SYSTEM_WINDOWS)
+			char *pValue;
+			errno_t err = _dupenv_s(&pValue, NULL, "APPDATA");
+			if (err) return ""; else return pValue;
+#else
+			struct passwd *pw = getpwuid(getuid());
+			const char *homedir = pw->pw_dir;
+
+			if (Exists(homedir))
+			{
+				return homedir;
+			}
+
+			return "";
+#endif
+		}
+
+		std::string GetDocumentsPath()
+		{
+#if defined (SYSTEM_WINDOWS)
+			TCHAR my_documents[MAX_PATH];
+			HRESULT result = SHGetFolderPath(NULL, CSIDL_MYDOCUMENTS, NULL, SHGFP_TYPE_CURRENT, my_documents);
+
+			if (result != S_OK)
+			{
+				std::cout << "Error: " << result << "...\n";
+			}
+			else
+			{
+				std::string s(my_documents);
+				std::stringstream ss; 
+				ss << s;
+				return ss.str();
+			}	
+#else
+			if (Exists_s(GetAppDataPath() + "/Documents"))
+			{
+				return GetAppDataPath() + "/Documents";
+			}
+#endif
+			return GetAppDataPath();
+		}
+
+		std::string GetPath(const std::string& rPath)
+		{
+			if (IsDir_s(rPath)) return rPath; // 'pPath' is already the parent directory of itself.
+
+			for (size_t i = rPath.size() - 1; i > 0; --i)
+			{
+				if (rPath[i] == '/' || rPath[i] == '\\') {
+					++i;
+					return std::string(rPath.begin(), rPath.begin() + i);
+				}
+			}
+
+			return "";
+		}
+
+		std::string GetExtension(const std::string& rPath)
+		{
+			std::string ext = "";
+			for (size_t i = rPath.rfind("."), size = rPath.size(); i < size; ++i) {
+				ext += rPath[i];
+			}
+
+			return ext;
+		}
+
+		std::string GetFolderName(const std::string& rPath)
+		{
+			bool skipLast = rPath.back() == '/' || rPath.back() == '\\'; // If the end of pPath is a / or \, we skip it in the end-return result.
+
+			for (size_t i = skipLast ? (rPath.size() - 2) : (rPath.size() - 1); i > 0; --i) //i >= 0;
+			{
+				if (rPath[i] == '/' || rPath[i] == '\\')
+				{
+					return std::string(rPath.begin() + (i + 1), skipLast ? rPath.end() - 1 : rPath.end());
+				}
+			}
+
+			return skipLast ? std::string(rPath.begin(), rPath.end() - 1) : rPath;
+		}
+
+		std::string StripBoth(const std::string& rPath)
+		{
+			if (IsDir_s(rPath)) return ""; // 'pPath' is a directory... return an empty string.
+
+			std::string out(rPath);
+			_StripPath(out);
+			_StripExt(out);
+
+			return out;
+		}
+
+		std::string StripPath(const std::string& rPath)
+		{
+			if (IsDir_s(rPath)) return ""; // pPath is a directory, return the lowest-level folder name.
+
+			std::string out(rPath);
+			_StripPath(out);
+
+			return out;
+		}
+
+		std::string StripExtension(const std::string& rPath)
+		{
+			if (IsDir_s(rPath)) return rPath; // 'pPath' is a directory, has no extension.
+
+			std::string out(rPath);
+			_StripExt(out);
+
+			return out;
+		}
+
+		// Note: these will delete FILES from the disk
+		// And not move them to the trash/recycle bin.
+		const int RemoveFile(const char* pPath)
+		{
+			const int result = remove(pPath);
+			return result;
+		}
+
+		const int RemoveFile_s(const std::string& pPath)
+		{
+			const int result = remove(pPath.c_str());
+			return result;
+		}
+
+
+		// /.Trash-1000
+		/*
+		std::list<std::string> GetContentsInDir()
+		{
+			DIR* dirp;
+			struct dirent* directory;
+			dirp = opendir(_GetDir());
+			if (dirp)
+			{
+				while ((directory = readdir(dirp)) != NULL)
+				{
+					std::stringstream ss;
+					std::string s;
+					ss << directory->d_name;
+					ss >> s;
+					d.push_back(s);
+				}
+
+				d.sort();
+				closedir(dirp);
+			}
+
+			return d;
+		}
+		*/
+
+		bool _CreateDirectory(const std::string& rName)
+		{
+			if (Exists(rName.c_str()))
+				return false;
+
+#if defined (SYSTEM_WINDOWS)
+			_mkdir(rName.c_str());
+#else
+			mkdir(rName.c_str(), 0777);
+#endif
+			return Exists(rName.c_str());
+		}
+	}
+	// ======== END OF ========= //
+	// ======= FileSystem ====== //
+	// ======== END OF ========= //
+
+	// ========================= //
+	// ========  String  ======= //
+	// ========================= //
+	namespace String
+	{
+		bool Boolean(const std::string& pString)
+		{
+			if (pString == "1" || pString == "true")
+				return true;
+
+			return false;
+		}
+
+		int Int(const std::string& pString)
+		{
+			return std::stoi(pString);
+		}
+
+		float Float(const std::string& pString)
+		{
+			// There may be times when a float is written like "3.14f"
+			// remove the "f" suffix.
+			const size_t suffix = pString.rfind('f');
+			if (std::string::npos != suffix)
+			{
+				std::string newstr = pString;
+				newstr.erase(suffix);
+			}
+			return std::stof(pString);
+		}
+
+		const char* Char(const std::string& pString)
+		{
+			//std::string newstr = pString;
+			//return &newstr[0u];
+			return pString.c_str();
+		}
+
+		bool Contains(const std::string& pString, const std::string& pSubstring) 
+		{
+			return pString.find(pSubstring) != std::string::npos;
+		}
+
+		bool IsDigits(const std::string& pString, bool pLeadingDigits) 
+		{
+			if (!pLeadingDigits) 
+			{
+				for (char digit : pString) 
+				{
+					if (!std::isdigit(digit)) 
+					{
+						return false;
+					}
+				}
+			}
+			else { return std::isdigit(pString[0]) != 0; }
+
+			return true;
+		}
+	}
+	// ======== END OF ========= //
+	// ========  String  ======= //
 	// ======== END OF ========= //
 }
