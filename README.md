@@ -1,7 +1,5 @@
 # RSL
-RSL (Reep's Standard Library) are a collection of a simple C++ and two header files that provide basic functionality of Outputing
-information, getting basic user input, and writing everything to a log file with timestamps. RSL is mainly designed to work on
-*nix based systems (Linux, macOS, FreeBSD, etc) but it is still tested with Windows via MSVC compiler. RSL also has an included platform.h file which helps identify the operating system and architecture you're building for.
+RSL (Reep's Standard Library) is a collection of a simple C++ and two header files that provide basic functionality of Outputing information, getting basic user input, and writing everything to a log file with timestamps. RSL is mainly designed to work on *nix based systems (Linux, macOS, FreeBSD, etc) but it is still tested with Windows via MSVC compiler. RSL also has an included platform.h file which helps identify the operating system and architecture you're building for.
 
 I've decided to take the "Best of" of systems I've wrote and got help on through out the years and compile them into one file
 to be recycled as they are pretty much useful systems that; in my opinion, every app needs.
@@ -14,12 +12,14 @@ If you run the make file, it'll build the test app with g++ which works on Linux
 
 ## Features
 - Basic input and output
-- Log output
+- Log output (With colors!)
+- Config reader and phraser.
 
 ## Planned Features
 - Time calculation
+
+## WIP Features
 - Basic filesystem (Because not all compilers support C++17)
-- Config reader and phraser.
 
 ## Tested Compilers
 - g++
