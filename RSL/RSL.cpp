@@ -935,6 +935,11 @@ namespace RSL
 
 	Config::Config(const Config& rConfig)
 	{
+		// Deep copy keyvalues.
+        for (const auto& pair : rConfig.KeyValues)
+        {
+            KeyValues[pair.first] = pair.second;
+        }
 	}
 
 	Config::~Config()

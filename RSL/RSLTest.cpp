@@ -29,7 +29,6 @@ int main()
 	// Another inquiry, but don't log...
 	s = RSL::WaitForInput("How old are you?", false);
 
-#if defined (RSL_EXPERIMENTAL)
 	// Test Debugging events
 	RSL::Print("Creating debugging event..");
 	RSL::Debug::Event e("Test");
@@ -41,7 +40,6 @@ int main()
 	}
 
 	RSL::Debug::EndEvent(&e);
-#endif
 
 	// Test filesystem stuff.
 	RSL::Print(RSL::FileSystem::GetDir());

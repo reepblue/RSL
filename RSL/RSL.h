@@ -32,7 +32,7 @@ SOFTWARE.
 #define RSL_INCLUDED
 #define RSL_VERSION_MAJOR 18
 #define RSL_VERSION_MINOR 05
-#define RSL_VERSION_BUILD 12
+#define RSL_VERSION_BUILD 20
 
 //================================
 #if defined(__cplusplus)
@@ -84,6 +84,7 @@ SOFTWARE.
 
 // Flags
 //#define RSL_EXPERIMENTAL
+//#define RSL_CMDSYSTEM
 
 // Epoch Time
 // DO NOT EDIT
@@ -198,6 +199,7 @@ namespace RSL
 	// ===========
 	namespace FileSystem
 	{
+		// See issue #5
 		bool Exists(const char* pPath); // Works both on files and directories
 		bool Exists_s(const std::string& pPath); // Works both on files and directories
 		bool IsDir(const char* pPath);
