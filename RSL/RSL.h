@@ -199,6 +199,7 @@ namespace RSL
 	namespace FileSystem
 	{
 		bool Exists(const char* pPath); // Works both on files and directories
+		bool Exists_s(const std::string& pPath); // Works both on files and directories
 		bool IsDir(const char* pPath);
 		bool IsDir_s(const std::string& pPath);
 
@@ -235,7 +236,35 @@ namespace RSL
 		const char* Char(const std::string& pString);
 		bool IsDigits(const std::string& pString, bool pLeadingDigits);
 		bool Contains(const std::string& pString, const std::string& pSubstring);
+
+		std::string TrimLeft(std::string& pString);
+		std::string TrimRight(std::string& pString);
+		std::string TrimBoth(std::string& pString);
 	}
+
+	// ===========
+	// Config
+	// ===========
+	struct Config
+	{
+	protected:
+		std::string FileName;
+		std::string FullPath;
+		bool WriteProtect;
+		std::map<std::string, std::string> KeyValues;
+        std::map<std::string, std::string> ReadKeyValues(const std::string& pPath);
+
+	public:
+		Config(const std::string& rPath, bool bWriteProtect = false);
+		Config(const Config& rConfig);
+		~Config();
+
+		std::string& GetFullPath() {return FullPath;}
+		void WriteKeyValue(const std::string& rKey, const std::string& rDefaultValue = "");
+        std::string GetKeyValue(const std::string& rKey, const std::string& rDefaultValue="");
+
+		bool SaveOut();
+	};
 }
 
 #define RS_CreateDir(x) RSL::FileSystem::_CreateDirectory(x)

@@ -24,4 +24,4 @@ release : $(OBJS)
 all : clean debug release
 
 clean:
-	rm -f $(OBJ_NAME) $(OBJ_NAME).debug *.log *.o *.a *.gch	
+	rm -f $(OBJ_NAME) $(OBJ_NAME).debug *.cfg *.log *.o *.a *.gch	

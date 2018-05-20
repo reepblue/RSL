@@ -59,7 +59,19 @@ int main()
 	{
 		RSL::Print("Folder wasn't made. Maybe it already exists?");
 	}
-		
+
+	RSL::Config config("test.cfg");
+
+	if (RSL::FileSystem::Exists_s(config.GetFullPath()))
+	{
+		RSL::Print(config.GetKeyValue("test"), RSL::MESSAGE_MAGENTA);
+	}
+	else
+	{
+		config.WriteKeyValue("test","1");
+		config.SaveOut();	
+	}
+	
 	// Write out the vector to the log file.
 	RSL::WriteOut();
 

@@ -831,8 +831,159 @@ namespace RSL
 
 			return true;
 		}
+
+		std::string TrimLeft(std::string& pString)
+		{
+			pString.erase(pString.begin(), std::find_if(pString.begin(), pString.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+			return pString;
+		}
+
+		std::string TrimRight(std::string& pString)
+		{
+			pString.erase(std::find_if(pString.rbegin(), pString.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), pString.end());
+			return pString;
+		}
+
+		std::string TrimBoth(std::string& pString)
+		{
+			pString.erase(pString.begin(), std::find_if(pString.begin(), pString.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+			pString.erase(std::find_if(pString.rbegin(), pString.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), pString.end());
+			return pString;
+		}
 	}
 	// ======== END OF ========= //
 	// ========  String  ======= //
+	// ======== END OF ========= //
+
+	// ========================= //
+	// ========  Config  ======= //
+	// ========================= //
+	Config::Config(const std::string& rPath, bool bWriteProtect)
+	{
+		FullPath = rPath;
+        FileName = FileSystem::StripPath(rPath);
+
+		// If this actually exists, dump all values into memory.
+		if (FileSystem::Exists_s(rPath))
+		{
+        	KeyValues = ReadKeyValues(FullPath);
+		}
+
+		WriteProtect = bWriteProtect;
+	}
+
+	Config::Config(const Config& rConfig)
+	{
+	}
+
+	Config::~Config()
+	{
+		FileName.clear();
+		FullPath.clear();
+		KeyValues.clear();
+	}
+
+    static const std::vector<char> removedEscapeSequences = { '\"', '\n', '\?', '\a', '\b', '\f', '\r', '\v' };
+    std::map<std::string, std::string> Config::ReadKeyValues(const std::string& pPath)
+    {
+        std::ifstream file(pPath, std::fstream::in);
+        if (!file.is_open())
+        {
+            //WarnMsg("Failed to open file: \"" + pPath + "\"");
+            return {}; // Return an empty map.
+        }
+
+        //Msg("Loading config: \"" + pPath + "\"...");
+
+        std::string line;
+        std::map<std::string, std::string> out;
+        while (std::getline(file, line))
+        {
+            //Trim left-hand side whitespace padding.
+            String::TrimLeft(line);
+
+            if (line.size() < 2 || (line[0] == '/' && line[1] == '/') || (line[0] == '#') ) continue; // Skip empty/invalid/commented lines.
+
+            //Remove formatting from 'line'.
+            for (const auto& seq : removedEscapeSequences)
+            {
+                line.erase(std::remove(line.begin(), line.end(), seq), line.end());
+            }
+
+            //Trim right-hand side whitespace padding.
+            String::TrimRight(line);
+
+            //Find equals sign.
+            auto equalPosition = std::find(line.begin(), line.end(), '=');
+            if (equalPosition == line.end()) continue; // Skip line w/o = sign.
+            if (equalPosition == (line.end() - 1))
+            {
+                std::string key = std::string(line.begin(), equalPosition);
+                String::TrimRight(key);
+                out[key] = "";
+            }
+            else
+            {
+                std::string key = std::string(line.begin(), equalPosition);
+                String::TrimRight(key);
+                std::string value = std::string(equalPosition + 1, line.end());
+                String::TrimLeft(value);
+                out[key] = value;
+            }
+        }
+
+        return out;
+    }
+
+	void Config::WriteKeyValue(const std::string& rKey, const std::string& rDefaultValue)
+    {
+        KeyValues[rKey] = rDefaultValue;
+    }
+
+    std::string Config::GetKeyValue(const std::string& rKey, const std::string& rDefaultValue)
+    {
+        auto iter = KeyValues.find(rKey);
+        if (iter != KeyValues.end())
+        {
+            // key 2 exists, do something with iter->second (the value)
+            return KeyValues.find(rKey)->second;
+        }
+
+        // If the key is nil, register it.
+        KeyValues[rKey] = rDefaultValue;
+
+        // Then return..
+        return KeyValues.find(rKey)->second;
+    }
+
+	bool Config::SaveOut()
+	{
+		if (WriteProtect)
+			return false;
+
+        if (KeyValues.size() <= 0)
+            return false;
+
+        //Msg("Saving config: \"" + fullpath + "\"...");
+        std::ofstream out(FileName);
+
+        std::string line;
+        for (const auto& pair : KeyValues)
+        {
+            if (pair.second != "")
+            {
+                line = pair.first + "=" + pair.second;
+                out << line << std::endl;
+            }
+
+        }
+
+        out.close();
+
+        return FileSystem::Exists_s(FullPath);
+	}
+
+	// ======== END OF ========= //
+	// ========  Config  ======= //
 	// ======== END OF ========= //
 }
