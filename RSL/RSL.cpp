@@ -850,6 +850,67 @@ namespace RSL
 			pString.erase(std::find_if(pString.rbegin(), pString.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), pString.end());
 			return pString;
 		}
+
+		std::size_t Find(const std::string& rString, const std::string& rToken)
+		{
+			std::size_t found = rString.rfind(rToken);
+			if (found != std::string::npos)
+			{
+				return found;
+			}
+
+			return 0;
+		}
+
+		std::string Chr(const unsigned char rChr)
+		{
+			std::stringstream ss;
+			std::string s;
+			ss << rChr;
+			ss >> s;
+			return s;
+		}
+
+		std::size_t Length(const std::string& rString)
+		{
+			return rString.size();
+		}
+
+		std::string Replace(const std::string& rString, const std::string& rSearch, const std::string& rReplace)
+		{
+			std::string newstr(rString);
+			size_t start_pos = rString.find(rSearch);
+			if (start_pos == std::string::npos)
+				return rSearch;
+			newstr.replace(start_pos, rSearch.length(), rReplace);
+			return newstr;
+		}
+
+		std::string ReplaceAll(const std::string& rString, const std::string& rSearch, const std::string& rReplace)
+		{
+			std::string newstr = rString;
+			size_t start_pos = 0;
+			while ((start_pos = newstr.find(rSearch, start_pos)) != std::string::npos)
+			{
+				newstr.replace(start_pos, rSearch.length(), rReplace);
+				start_pos += rReplace.length();
+			}
+			return newstr;
+		}
+
+		std::string Lower(const std::string& rString)
+		{
+			std::string newstr(rString);
+			std::transform(newstr.begin(), newstr.end(), newstr.begin(), ::tolower);
+			return newstr;
+		}
+
+		std::string Upper(const std::string& rString)
+		{
+			std::string newstr(rString);
+			std::transform(newstr.begin(), newstr.end(), newstr.begin(), ::toupper);
+			return newstr;
+		}
 	}
 	// ======== END OF ========= //
 	// ========  String  ======= //

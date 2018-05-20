@@ -240,6 +240,14 @@ namespace RSL
 		std::string TrimLeft(std::string& pString);
 		std::string TrimRight(std::string& pString);
 		std::string TrimBoth(std::string& pString);
+
+		static std::size_t Find(const std::string& rString, const std::string& rToken);
+		static std::string Chr(const unsigned char rChr);
+		static std::size_t Length(const std::string& rString);
+		static std::string Replace(const std::string& rString, const std::string& rSearch, const std::string& rReplace);
+		static std::string ReplaceAll(const std::string& rString, const std::string& rSearch, const std::string& rReplace);
+		static std::string Lower(const std::string& rString);
+		static std::string Upper(const std::string& rString);
 	}
 
 	// ===========
@@ -259,7 +267,7 @@ namespace RSL
 		Config(const Config& rConfig);
 		~Config();
 
-		std::string& GetFullPath() {return FullPath;}
+		const std::string& GetFullPath() { return FullPath; }
 		void WriteKeyValue(const std::string& rKey, const std::string& rDefaultValue = "");
         std::string GetKeyValue(const std::string& rKey, const std::string& rDefaultValue="");
 
