@@ -32,7 +32,7 @@ SOFTWARE.
 #define RSL_INCLUDED
 #define RSL_VERSION_MAJOR 18
 #define RSL_VERSION_MINOR 05
-#define RSL_VERSION_BUILD 20
+#define RSL_VERSION_BUILD 25
 
 //================================
 #if defined(__cplusplus)
@@ -199,14 +199,10 @@ namespace RSL
 	// ===========
 	namespace FileSystem
 	{
-		// See issue #5
-		//bool Exists(const char* pPath); // Works both on files and directories
-		bool Exists(const std::string& pPath); // Works both on files and directories
-		//bool IsDir(const char* pPath);
-		bool IsDir(const std::string& pPath);
+		bool Exists(const std::string& rPath); // Works both on files and directories
+		bool IsDir(const std::string& rPath);
 
-		//bool SetDir(const char* pPath);
-		bool SetDir_s(const std::string& pPath);
+		bool SetDir(const std::string& rPath);
 		const char* GetDir();
 		std::string GetDir_s();
 
@@ -220,8 +216,7 @@ namespace RSL
 		std::string StripPath(const std::string& rPath);
 		std::string StripExtension(const std::string& rPath);
 
-		const int RemoveFile(const char* pPath);
-		const int RemoveFile_s(const std::string& pPath);
+		const int RemoveFile(const std::string& rPath);
 		//std::list<std::string> GetContentsInDir(); TODO: Get a list of every file in a dir. This will be needed to delete a directory with content in it.
 
 		bool _CreateDirectory(const std::string& rName);
@@ -236,7 +231,7 @@ namespace RSL
 		int Int(const std::string& pString);
 		float Float(const std::string& pString);
 		const char* Char(const std::string& pString);
-		bool IsDigits(const std::string& pString, bool pLeadingDigits);
+		bool IsDigits(const std::string& pString, bool pLeadingDigits = false);
 		bool Contains(const std::string& pString, const std::string& pSubstring);
 
 		std::string TrimLeft(std::string& pString);
@@ -273,8 +268,9 @@ namespace RSL
 		void WriteKeyValue(const std::string& rKey, const std::string& rDefaultValue = "");
         std::string GetKeyValue(const std::string& rKey, const std::string& rDefaultValue="");
 
+		void Flush();
 		bool SaveOut();
-	};
+	};	
 }
 
 #define RS_CreateDir(x) RSL::FileSystem::_CreateDirectory(x)

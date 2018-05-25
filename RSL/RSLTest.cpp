@@ -29,6 +29,12 @@ int main()
 	// Another inquiry, but don't log...
 	s = RSL::WaitForInput("How old are you?", false);
 
+	if (RSL::String::IsDigits(s) == false)
+	{
+		RSL::Print("Not cool, aborting...");
+		return 1;
+	}
+
 	// Test Debugging events
 	RSL::Print("Creating debugging event..");
 	RSL::Debug::Event e("Test");

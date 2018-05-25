@@ -525,10 +525,10 @@ namespace RSL
 		}
 		*/
 
-		bool Exists(const std::string& pPath)
+		bool Exists(const std::string& rPath)
 		{
 			struct stat buffer;
-			return stat(pPath.c_str(), &buffer) == 0;
+			return stat(rPath.c_str(), &buffer) == 0;
 		}
 
 		/*
@@ -541,10 +541,10 @@ namespace RSL
 		}
 		*/
 
-		bool IsDir(const std::string& pPath)
+		bool IsDir(const std::string& rPath)
 		{
 			struct stat buffer;
-			if (stat(pPath.c_str(), &buffer) != 0) return false;
+			if (stat(rPath.c_str(), &buffer) != 0) return false;
 
 			return buffer.st_mode & S_IFDIR;
 		}
@@ -722,15 +722,17 @@ namespace RSL
 
 		// Note: these will delete FILES from the disk
 		// And not move them to the trash/recycle bin.
+		/*
 		const int RemoveFile(const char* pPath)
 		{
 			const int result = remove(pPath);
 			return result;
 		}
+		*/
 
-		const int RemoveFile_s(const std::string& pPath)
+		const int RemoveFile(const std::string& rPath)
 		{
-			const int result = remove(pPath.c_str());
+			const int result = remove(rPath.c_str());
 			return result;
 		}
 
@@ -965,7 +967,7 @@ namespace RSL
             return {}; // Return an empty map.
         }
 
-        //Msg("Loading config: \"" + pPath + "\"...");
+		Print("Loading config file: \"" + pPath + "\"...");
 
         std::string line;
         std::map<std::string, std::string> out;
@@ -1028,6 +1030,11 @@ namespace RSL
         return KeyValues.find(rKey)->second;
     }
 
+	void Config::Flush()
+	{
+		KeyValues.clear();
+	}
+
 	bool Config::SaveOut()
 	{
 		if (WriteProtect)
@@ -1036,7 +1043,7 @@ namespace RSL
         if (KeyValues.size() <= 0)
             return false;
 
-        //Msg("Saving config: \"" + fullpath + "\"...");
+		Print("Saving config file: \"" + FullPath + "\"...");
         std::ofstream out(FileName);
 
         std::string line;
