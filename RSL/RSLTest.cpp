@@ -60,7 +60,7 @@ int main()
 	// Test Config system.
 	RSL::Config config("test.cfg");
 
-	if (!RSL::FileSystem::Exists_s(config.GetFullPath()))
+	if (!RSL::FileSystem::Exists(config.GetFullPath()))
 	{
 		config.WriteKeyValue("test","1");
 		config.SaveOut();	

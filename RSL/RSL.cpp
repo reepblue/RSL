@@ -517,18 +517,21 @@ namespace RSL
 			path.erase(path.begin(), path.begin() + pos);
 		}
 
+		/*
 		bool Exists(const char* pPath)
 		{
 			struct stat buffer;
 			return stat(pPath, &buffer) == 0;
 		}
+		*/
 
-		bool Exists_s(const std::string& pPath)
+		bool Exists(const std::string& pPath)
 		{
 			struct stat buffer;
 			return stat(pPath.c_str(), &buffer) == 0;
 		}
 
+		/*
 		bool IsDir(const char* pPath)
 		{
 			struct stat buffer;
@@ -536,8 +539,9 @@ namespace RSL
 
 			return buffer.st_mode & S_IFDIR;
 		}
+		*/
 
-		bool IsDir_s(const std::string& pPath)
+		bool IsDir(const std::string& pPath)
 		{
 			struct stat buffer;
 			if (stat(pPath.c_str(), &buffer) != 0) return false;
@@ -545,6 +549,7 @@ namespace RSL
 			return buffer.st_mode & S_IFDIR;
 		}
 
+		/*
 		bool SetDir(const char* pPath)
 		{
 			if (!Exists(pPath))
@@ -559,8 +564,9 @@ namespace RSL
 #endif
 			return true;
 		}
+		*/
 
-		bool SetDir_s(const std::string& pPath)
+		bool SetDir(const std::string& pPath)
 		{
 			if (!Exists(pPath.c_str()))
 			{
@@ -635,7 +641,7 @@ namespace RSL
 				return ss.str();
 			}	
 #else
-			if (Exists_s(GetAppDataPath() + "/Documents"))
+			if (Exists(GetAppDataPath() + "/Documents"))
 			{
 				return GetAppDataPath() + "/Documents";
 			}
@@ -645,7 +651,7 @@ namespace RSL
 
 		std::string GetPath(const std::string& rPath)
 		{
-			if (IsDir_s(rPath)) return rPath; // 'pPath' is already the parent directory of itself.
+			if (IsDir(rPath)) return rPath; // 'pPath' is already the parent directory of itself.
 
 			for (size_t i = rPath.size() - 1; i > 0; --i)
 			{
@@ -685,7 +691,7 @@ namespace RSL
 
 		std::string StripBoth(const std::string& rPath)
 		{
-			if (IsDir_s(rPath)) return ""; // 'pPath' is a directory... return an empty string.
+			if (IsDir(rPath)) return ""; // 'pPath' is a directory... return an empty string.
 
 			std::string out(rPath);
 			_StripPath(out);
@@ -696,7 +702,7 @@ namespace RSL
 
 		std::string StripPath(const std::string& rPath)
 		{
-			if (IsDir_s(rPath)) return ""; // pPath is a directory, return the lowest-level folder name.
+			if (IsDir(rPath)) return ""; // pPath is a directory, return the lowest-level folder name.
 
 			std::string out(rPath);
 			_StripPath(out);
@@ -706,7 +712,7 @@ namespace RSL
 
 		std::string StripExtension(const std::string& rPath)
 		{
-			if (IsDir_s(rPath)) return rPath; // 'pPath' is a directory, has no extension.
+			if (IsDir(rPath)) return rPath; // 'pPath' is a directory, has no extension.
 
 			std::string out(rPath);
 			_StripExt(out);
@@ -925,7 +931,7 @@ namespace RSL
         FileName = FileSystem::StripPath(rPath);
 
 		// If this actually exists, dump all values into memory.
-		if (FileSystem::Exists_s(rPath))
+		if (FileSystem::Exists(rPath))
 		{
         	KeyValues = ReadKeyValues(FullPath);
 		}
@@ -1046,7 +1052,7 @@ namespace RSL
 
         out.close();
 
-        return FileSystem::Exists_s(FullPath);
+        return FileSystem::Exists(FullPath);
 	}
 
 	// ======== END OF ========= //

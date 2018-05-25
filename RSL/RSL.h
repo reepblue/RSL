@@ -200,12 +200,12 @@ namespace RSL
 	namespace FileSystem
 	{
 		// See issue #5
-		bool Exists(const char* pPath); // Works both on files and directories
-		bool Exists_s(const std::string& pPath); // Works both on files and directories
-		bool IsDir(const char* pPath);
-		bool IsDir_s(const std::string& pPath);
+		//bool Exists(const char* pPath); // Works both on files and directories
+		bool Exists(const std::string& pPath); // Works both on files and directories
+		//bool IsDir(const char* pPath);
+		bool IsDir(const std::string& pPath);
 
-		bool SetDir(const char* pPath);
+		//bool SetDir(const char* pPath);
 		bool SetDir_s(const std::string& pPath);
 		const char* GetDir();
 		std::string GetDir_s();
